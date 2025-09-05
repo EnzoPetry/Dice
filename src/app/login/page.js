@@ -61,6 +61,13 @@ export default function LoginPage() {
 				>
 					Login
 				</button>
+                        	<button
+					type="button"
+					onClick={() => router.push("/register")}
+					className="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 focus:outline-none focus:ring"
+				>
+					Registrar
+                        	</button>
 			</form>
 			{message && <p className="mt-4 text-center text-sm text-gray-700">{message}</p>}
 		</div>

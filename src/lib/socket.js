@@ -5,7 +5,7 @@ import { auth } from "./auth.js";
 export function initSocket(server) {
 	let io = new Server(server, {
 		cors: {
-			origin: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+			origin: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
 		},
 	});
 

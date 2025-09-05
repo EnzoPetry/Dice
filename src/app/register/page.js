@@ -30,7 +30,7 @@ export default function RegisterPage() {
 
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center bg-gray-100">
-			<h1 className="mb-6 text-3xl font-bold">Register</h1>
+			<h1 className="mb-6 text-3xl font-bold">Cadastro</h1>
 			<form onSubmit={handleSubmit} className="w-full max-w-sm bg-white p-6 rounded shadow-md">
 				<div className="mb-4">
 					<label className="mb-2 block text-sm font-bold text-gray-700" htmlFor="name">
