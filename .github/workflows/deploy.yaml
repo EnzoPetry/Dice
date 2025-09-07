@@ -29,9 +29,10 @@ jobs:
           run: npx prisma generate
 
         - name: "Build projeto"
-          run: npm start
+          run: npm run build
           env:
             DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
             NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
 
         - name: "Deploy para VPS"
@@ -43,9 +44,10 @@ jobs:
             password: ${{ secrets.VPS_PASSWORD }}
             script: |
               cd ${{ secrets.VPS_TARGET }}
-              pm2 stop dice || true
+              pm2 stop dice || echo "Aplicação não estava rodando"
               git pull origin main
-              npm ci --only=production
+              npm ci --production
               npx prisma generate
-              npm start
+              npx prisma migrate deploy || echo "Migração falhou"
+              npm run build
               pm2 start dice || pm2 restart dice

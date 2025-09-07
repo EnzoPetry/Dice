@@ -1,4 +1,4 @@
-import { initSocket } from "@/lib/socketio";
+import { initSocket } from "@/lib/socket";
 
 export const dynamic = "force-dynamic";
 
