@@ -16,17 +16,25 @@ jobs:
         - name: "Baixar código"
           uses: actions/checkout@v4
 
-        - name: "Copiar arquivos VPS"
-          uses: appleboy/scp-action@master
+        - name: "Configurar Node.js"
+          uses: actions/setup-node@v4
           with:
-            host: ${{ secrets.VPS_HOST }}
-            username: ${{ secrets.VPS_USERNAME }}
-            port: ${{ secrets.VPS_PORT }}
-            password: ${{ secrets.VPS_PASSWORD }}
-            source: "."
-            target: ${{ secrets.VPS_TARGET }}
+            node-version: "22.18.0"
+            cache: "npm"
 
-        - name: "Build deploy"
+        - name: "Instalar dependências"
+          run: npm ci
+
+        - name: "Rodar Prisma"
+          run: npx prisma generate
+
+        - name: "Build projeto"
+          run: npm run build
+          env:
+            DATABASE_URL: ${{ secrets.DATABASE_URL }}
+            NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+
+        - name: "Deploy para VPS"
           uses: appleboy/ssh-action@master
           with:
             host: ${{ secrets.VPS_HOST }}
@@ -35,4 +43,9 @@ jobs:
             password: ${{ secrets.VPS_PASSWORD }}
             script: |
               cd ${{ secrets.VPS_TARGET }}
-              pm2 restart dice-app || pm2 start start.js --name dice-app
+              pm2 stop dice || true
+              git pull origin main
+              npm ci --only=production
+              npx prisma generate
+              npm run start
+              pm2 start dice || pm2 restart dice
