@@ -29,7 +29,7 @@ jobs:
           run: npx prisma generate
 
         - name: "Build projeto"
-          run: npm run build
+          run: node start
           env:
             DATABASE_URL: ${{ secrets.DATABASE_URL }}
             NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
@@ -47,5 +47,5 @@ jobs:
               git pull origin main
               npm ci --only=production
               npx prisma generate
-              npm run start
+              node start
               pm2 start dice || pm2 restart dice
