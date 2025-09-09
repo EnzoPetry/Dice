@@ -39,7 +39,7 @@ export default function LoginPage() {
 				setTimeout(() => {
 					console.log("Redirecionando para /chat/1");
 					router.replace("/chat/1");
-				}, 5000);
+				}, 2000);
 			}
 		} catch (err) {
 			setError(`Erro ao fazer login: ${err.message}`);
