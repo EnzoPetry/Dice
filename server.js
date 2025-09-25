@@ -1,7 +1,9 @@
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
-import { initSocket } from "./src/lib/socket.js";
+import { Server } from "socket.io";
+import { prisma } from "./src/lib/prisma.js";
+import { auth } from "./src/lib/auth.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -13,10 +15,148 @@ app.prepare().then(() => {
 		handle(req, res, parsedUrl);
 	});
 
-	initSocket(server);
+	// Inicializa Socket.IO
+	const io = new Server(server, {
+		cors: {
+			origin: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
+			methods: ["GET", "POST"],
+			credentials: true,
+		},
+	});
 
-	server.listen(3000, (err) => {
+	io.on("connection", async (socket) => {
+		console.log("Nova conexão socket:", socket.id);
+
+		let session = null;
+
+		try {
+			session = await auth.api.getSession({
+				headers: socket.request.headers
+			});
+
+			if (!session) {
+				console.log("Conexão rejeitada - sem sessão válida");
+				socket.emit("auth_error", { message: "Sessão inválida" });
+				socket.disconnect();
+				return;
+			}
+
+			const now = new Date();
+			const sessionExpiry = new Date(session.expiresAt);
+
+			if (sessionExpiry < now) {
+				console.log("Conexão rejeitada - sessão expirada");
+				socket.emit("auth_error", { message: "Sessão expirada" });
+				socket.disconnect();
+				return;
+			}
+
+			console.log(`Usuário conectado: ${session.user.name || session.user.email} (${session.user.id})`);
+
+			socket.emit("auth_success", {
+				user: {
+					id: session.user.id,
+					name: session.user.name,
+					email: session.user.email
+				}
+			});
+
+		} catch (error) {
+			console.error("Erro na validação da sessão:", error);
+			socket.emit("auth_error", { message: "Erro de autenticação" });
+			socket.disconnect();
+			return;
+		}
+
+		// Handler para entrar em grupos/salas
+		socket.on("joinGroup", (groupId) => {
+			if (!session) return;
+
+			socket.join(`group_${groupId}`);
+			console.log(`Usuário ${session.user.id} entrou no grupo ${groupId}`);
+
+			// Notifica outros usuários do grupo
+			socket.to(`group_${groupId}`).emit("user_joined", {
+				userId: session.user.id,
+				userName: session.user.name || session.user.email,
+				message: `${session.user.name || session.user.email} entrou no chat`
+			});
+		});
+
+		// Handler para sair de grupos
+		socket.on("leaveGroup", (groupId) => {
+			if (!session) return;
+
+			socket.leave(`group_${groupId}`);
+			console.log(`Usuário ${session.user.id} saiu do grupo ${groupId}`);
+
+			// Notifica outros usuários do grupo
+			socket.to(`group_${groupId}`).emit("user_left", {
+				userId: session.user.id,
+				userName: session.user.name || session.user.email,
+				message: `${session.user.name || session.user.email} saiu do chat`
+			});
+		});
+
+		// Handler para mensagens
+		socket.on("message", async (data) => {
+			if (!session || !data.msg) {
+				socket.emit("message_error", { message: "Dados inválidos" });
+				return;
+			}
+
+			try {
+				const message = await prisma.message.create({
+					data: {
+						text: data.msg,
+						userId: session.user.id,
+					},
+					include: {
+						user: {
+							select: {
+								name: true,
+								email: true
+							}
+						}
+					},
+				});
+
+				const messageData = {
+					id: message.id,
+					text: message.text,
+					sender: message.userId,
+					senderName: message.user.name || message.user.email,
+					type: "user",
+					createdAt: message.createdAt,
+				};
+
+				// Envia para todos os clientes conectados
+				io.emit("message", messageData);
+
+				console.log(`Mensagem enviada por ${session.user.id}: ${data.msg}`);
+
+			} catch (error) {
+				console.error("Erro ao processar mensagem:", error);
+				socket.emit("message_error", {
+					message: "Erro ao enviar mensagem"
+				});
+			}
+		});
+
+		// Handler para desconexão
+		socket.on("disconnect", () => {
+			console.log(`Usuário desconectado: ${socket.id}`);
+			if (session) {
+				console.log(`Sessão encerrada para: ${session.user.id}`);
+			}
+		});
+	});
+
+	const port = process.env.PORT || 3000;
+
+	server.listen(port, (err) => {
 		if (err) throw err;
-		console.log("> Servidor rodando em http://localhost:3000");
+		console.log(`> Servidor rodando em http://localhost:${port}`);
+		console.log(`> Socket.IO inicializado`);
 	});
 });
