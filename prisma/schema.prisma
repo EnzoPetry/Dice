@@ -75,7 +75,7 @@ model Verification {
 }
 
 model RpgType {
-  id          String     @id
+  id          Int     @id @default(autoincrement())
   name        String
   description String
   groups      Group[]
@@ -84,13 +84,13 @@ model RpgType {
 }
 
 model Group {
-  id          String         @id
+  id          Int        @id @default(autoincrement())
   name        String
   description String
   createdAt   DateTime
   status      Boolean
-  rpgTypeId   String
-  rpgType     RpgType     @relation(fields: [rpgTypeId], references: [id])
+  rpgTypeId   Int
+  rpgType     RpgType    @relation(fields: [rpgTypeId], references: [id])
   messages    Message[]
   userGroups  UserGroup[]
 
@@ -100,7 +100,7 @@ model Group {
 model Message {
   id      String      @id
   userId  String
-  groupId String
+  groupId   Int
   content String
   sendAt  DateTime
   createdAt DateTime @default(now())
@@ -112,7 +112,7 @@ model Message {
 
 model UserGroup {
   userId  String
-  groupId String
+  groupId Int
   role    String?
   user    User    @relation(fields: [userId], references: [id])
   group   Group   @relation(fields: [groupId], references: [id])

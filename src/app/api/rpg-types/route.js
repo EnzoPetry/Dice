@@ -4,7 +4,6 @@ import { auth } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export async function GET(req) {
-
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });
 		if (!session) {
@@ -19,31 +18,19 @@ export async function GET(req) {
 			);
 		}
 
-		const messages = await prisma.message.findMany({
-			orderBy: {
-				createdAt: "asc"
+		const types = await prisma.rpgType.findMany({
+			select: {
+				id: true,
+				name: true,
+				description: true,
 			},
-			include: {
-				user: {
-					select: {
-						email: true,
-						name: true
-					}
-				}
+			orderBy: {
+				id: "asc",
 			},
 		});
 
-		const formattedMessages = messages.map(msg => ({
-			id: msg.id,
-			message: msg.text,
-			type: "user",
-			userId: msg.userId,
-			userName: msg.user.name || msg.user.email,
-			createdAt: msg.createdAt,
-		}));
-
 		return new Response(
-			JSON.stringify(formattedMessages),
+			JSON.stringify(types),
 			{
 				status: 200,
 				headers: {
@@ -52,6 +39,7 @@ export async function GET(req) {
 			}
 		);
 	} catch (error) {
+		console.log("Erro ao buscar grupos: ", error);
 		return new Response(JSON.stringify(
 			{
 				error: "Internal Server Error"

@@ -53,7 +53,6 @@ export async function GET(req) {
 			}
 		);
 	} catch (error) {
-		console.log("Erro ao buscar grupos: ", error);
 		return new Response(JSON.stringify(
 			{
 				error: "Internal Server Error"
@@ -91,7 +90,7 @@ export async function POST(req) {
 			);
 		}
 		const rpgType = await prisma.rpgType.findUnique({
-			where: { id: rpgTypeId }
+			where: { id: parseInt(rpgTypeId) }
 		});
 		if (!rpgType) {
 			return new Response(
@@ -105,7 +104,7 @@ export async function POST(req) {
 			);
 		}
 
-		const newGroup = await prisma.group.create({
+			const newGroup = await prisma.group.create({
 			data: {
 				name,
 				description,
@@ -142,7 +141,6 @@ export async function POST(req) {
 			}
 		);
 	} catch (error) {
-		console.log("Erro ao criar grupo: ", error);
 		return new Response(JSON.stringify(
 			{
 				error: "Internal Server Error"

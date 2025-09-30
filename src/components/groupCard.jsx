@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Users } from "lucide-react";
 
-const GroupCard = ({ group }) => {
+export default function GroupCard({ group, onJoinSuccess }) {
+
+	const handleJoinGroup = async () => {
+		try {
+			const res = await fetch(`/api/groups/${group.id}/join`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			})
+			const data = res.json();
+			if (!res.ok) {
+				throw new Error(data.error || "Failed to join group");
+			}
+			if (onJoinSuccess) {
+				onJoinSuccess();
+			}
+		} catch (err) {
+			throw new Error(err.message || "Failed to join group");
+		}
+	}
+
 	return (
 		<Card id={`grupo-${group.id}`}>
 			<CardHeader>
@@ -38,12 +60,14 @@ const GroupCard = ({ group }) => {
 					</div>
 				</div>
 
-				<Button className="w-full" size="lg">
+				<Button
+					className="w-full"
+					size="lg"
+					onClick={handleJoinGroup}
+				>
 					Entrar no Grupo
 				</Button>
 			</CardContent>
 		</Card>
 	);
 }
-
-export default GroupCard;

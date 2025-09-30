@@ -10,18 +10,18 @@ export default function HomePage() {
 	const router = useRouter();
 	const [group, setGroup] = useState([]);
 
-	useEffect(() => {
-		async function fetchGroup() {
-			try {
-				const res = await fetch(`/api/groups`);
-				const data = await res.json();
-				//debug
-				console.log(data);
-				setGroup(data);
-			} catch (err) {
-				console.error(err);
-			}
+	const fetchGroup = async () => {
+		try {
+			const res = await fetch(`/api/groups`);
+			const data = await res.json();
+			//debug
+			console.log(data);
+			setGroup(data);
+		} catch (err) {
+			console.error(err);
 		}
+	}
+	useEffect(() => {
 		fetchGroup();
 	}, []);
 
@@ -40,7 +40,7 @@ export default function HomePage() {
 
 				<div className="grid grid-cols-1 gap-4">
 					{group.map((group) => (
-						<GroupCard key={group.id} group={group} />
+						<GroupCard key={group.id} group={group} onJoinSuccess={fetchGroup} />
 					))}
 				</div>
 			</div>
