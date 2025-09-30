@@ -38,7 +38,7 @@ export default function LoginPage() {
 				setMessage("Login realizado com sucesso!");
 				setTimeout(() => {
 					console.log("Redirecionando para /chat/1");
-					router.replace("/chat/1");
+					router.replace("/home");
 				}, 2000);
 			}
 		} catch (err) {

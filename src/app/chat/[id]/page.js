@@ -3,7 +3,7 @@
 import { authClient } from "@/lib/auth-client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { io, Socket } from "socket.io-client"
+import { io } from "socket.io-client"
 
 export default function ChatPage({ params }) {
 	// const { id } = params;

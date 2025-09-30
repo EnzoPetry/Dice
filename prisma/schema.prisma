@@ -23,17 +23,10 @@ model User {
   sessions      Session[]
   accounts      Account[]
   messages      Message[]
+  userGroups    UserGroup[]
 
   @@unique([email])
   @@map("user")
-}
-
-model Message {
-  id        String   @id @default(uuid())
-  text      String
-  createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Session {
@@ -79,4 +72,51 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model RpgType {
+  id          String     @id
+  name        String
+  description String
+  groups      Group[]
+
+  @@map("rpgType")
+}
+
+model Group {
+  id          String         @id
+  name        String
+  description String
+  createdAt   DateTime
+  status      Boolean
+  rpgTypeId   String
+  rpgType     RpgType     @relation(fields: [rpgTypeId], references: [id])
+  messages    Message[]
+  userGroups  UserGroup[]
+
+  @@map("group")
+}
+
+model Message {
+  id      String      @id
+  userId  String
+  groupId String
+  content String
+  sendAt  DateTime
+  createdAt DateTime @default(now())
+  user    User     @relation(fields: [userId], references: [id])
+  group   Group    @relation(fields: [groupId], references: [id])
+
+  @@map("message")
+}
+
+model UserGroup {
+  userId  String
+  groupId String
+  role    String?
+  user    User    @relation(fields: [userId], references: [id])
+  group   Group   @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
+  @@map("users_groups")
 }
