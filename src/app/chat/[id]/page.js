@@ -21,8 +21,8 @@ export default function ChatPage({ params }) {
 				const { data, error } = await authClient.getSession();
 				if (error) throw error;
 				setSession(data);
-			} catch (err) {
-				setError(err.message || "Failed to load session");
+			} catch (error) {
+				setError(error.message || "Failed to load session");
 			} finally {
 				setLoading(false);
 			}
@@ -37,8 +37,8 @@ export default function ChatPage({ params }) {
 				const data = await res.json();
 				if (data.error) throw new Error(data.error);
 				setMessages(data);
-			} catch (err) {
-				setError(err.message || 'Failed to load messages');
+			} catch (error) {
+				setError(error.message || 'Failed to load messages');
 			}
 		}
 		fetchMessages();

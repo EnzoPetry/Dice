@@ -16,15 +16,15 @@ export default function GroupCard({ group, onJoinSuccess }) {
 					"Content-Type": "application/json",
 				},
 			})
-			const data = res.json();
+			const data = await res.json();
 			if (!res.ok) {
 				throw new Error(data.error || "Failed to join group");
 			}
 			if (onJoinSuccess) {
 				onJoinSuccess();
 			}
-		} catch (err) {
-			throw new Error(err.message || "Failed to join group");
+		} catch (error) {
+			throw new Error(error.message || "Failed to join group");
 		}
 	}
 

@@ -35,8 +35,8 @@ export function useSession() {
 			}
 
 			return data;
-		} catch (err) {
-			console.error('Erro na validação da sessão:', err);
+		} catch (error) {
+			console.error('Erro na validação da sessão:', error);
 			await clearSession();
 			return null;
 		}
@@ -71,8 +71,8 @@ export function useSession() {
 			try {
 				const validSession = await validateAndCleanSession();
 				setSession(validSession);
-			} catch (err) {
-				setError(err.message || 'Erro ao verificar sessão');
+			} catch (error) {
+				setError(error.message || 'Erro ao verificar sessão');
 			} finally {
 				setLoading(false);
 			}

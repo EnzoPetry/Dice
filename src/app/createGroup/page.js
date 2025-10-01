@@ -27,8 +27,8 @@ export default function CreateGroupPage() {
 				//debug
 				console.log(data);
 				setTypes(data);
-			} catch (err) {
-				console.error("Erro ao buscar tipos de RPG:", err);
+			} catch (error) {
+				console.error("Erro ao buscar tipos de RPG:", error);
 			}
 		}
 		fetchRpgTypes();
@@ -59,8 +59,8 @@ export default function CreateGroupPage() {
 			setTimeout(() => {
 				router.replace("/home");
 			}, 2000);
-		} catch (err) {
-			setError(err.message);
+		} catch (error) {
+			setError(error.message);
 		} finally {
 			setIsLoading(false);
 		}

@@ -17,10 +17,11 @@ export async function POST(req, { params }) {
 				}
 			);
 		}
-		const { groupId: groupIdParam } = await params;
+		const { groupId } = await params;
+		const groupIdParam = parseInt(groupId);
 
 		const group = await prisma.group.findUnique({
-			where: { id: parseInt(groupIdParam) }
+			where: { id: groupIdParam }
 		});
 		if (!group) {
 			return new Response(
@@ -33,7 +34,7 @@ export async function POST(req, { params }) {
 		const alreadyMember = await prisma.userGroup.findFirst({
 			where: {
 				userId: session.user.id,
-				groupId: groupId,
+				groupId: groupIdParam,
 			}
 		});
 		if (alreadyMember) {
@@ -47,7 +48,7 @@ export async function POST(req, { params }) {
 		const userGroup = await prisma.userGroup.create({
 			data: {
 				userId: session.user.id,
-				groupId: groupId,
+				groupId: groupIdParam,
 				role: "common",
 			}
 		});
@@ -65,7 +66,7 @@ export async function POST(req, { params }) {
 	} catch (error) {
 		return new Response(JSON.stringify(
 			{
-				error: "Internal Server Error"
+				error: error.message || "Internal Server Error"
 			}), { status: 500 }
 		);
 	}

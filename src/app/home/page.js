@@ -17,8 +17,8 @@ export default function HomePage() {
 			//debug
 			console.log(data);
 			setGroup(data);
-		} catch (err) {
-			console.error(err);
+		} catch (error) {
+			console.error(error);
 		}
 	}
 	useEffect(() => {

@@ -41,8 +41,8 @@ export default function LoginPage() {
 					router.replace("/home");
 				}, 2000);
 			}
-		} catch (err) {
-			setError(`Erro ao fazer login: ${err.message}`);
+		} catch (error) {
+			setError(`Erro ao fazer login: ${error.message}`);
 		} finally {
 			setIsLoading(false);
 		}

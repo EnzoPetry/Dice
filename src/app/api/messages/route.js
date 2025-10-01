@@ -54,7 +54,7 @@ export async function GET(req) {
 	} catch (error) {
 		return new Response(JSON.stringify(
 			{
-				error: "Internal Server Error"
+				error: error.message || "Internal Server Error"
 			}), { status: 500 }
 		);
 	}

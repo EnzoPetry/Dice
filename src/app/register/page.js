@@ -42,8 +42,8 @@ export default function RegisterPage() {
 					router.replace("/login");
 				}, 2000);
 			}
-		} catch (err) {
-			setMessage(`Erro no cadastro: ${err.message}`);
+		} catch (error) {
+			setMessage(`Erro no cadastro: ${error.message}`);
 		} finally {
 			setIsLoading(false);
 		}

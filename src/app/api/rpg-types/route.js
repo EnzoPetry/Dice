@@ -42,7 +42,7 @@ export async function GET(req) {
 		console.log("Erro ao buscar grupos: ", error);
 		return new Response(JSON.stringify(
 			{
-				error: "Internal Server Error"
+				error: error.message || "Internal Server Error"
 			}), { status: 500 }
 		);
 	}
