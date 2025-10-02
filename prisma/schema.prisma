@@ -104,8 +104,8 @@ model Message {
   content String
   sendAt  DateTime
   createdAt DateTime @default(now())
-  user    User     @relation(fields: [userId], references: [id])
-  group   Group    @relation(fields: [groupId], references: [id])
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@map("message")
 }
@@ -114,8 +114,8 @@ model UserGroup {
   userId  String
   groupId Int
   role    String?
-  user    User    @relation(fields: [userId], references: [id])
-  group   Group   @relation(fields: [groupId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@id([userId, groupId])
   @@map("users_groups")
