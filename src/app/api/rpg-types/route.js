@@ -39,11 +39,14 @@ export async function GET(req) {
 			}
 		);
 	} catch (error) {
-		console.log("Erro ao buscar grupos: ", error);
-		return new Response(JSON.stringify(
+		return new Response(
+			JSON.stringify({
+				error: error.message || "Internal Server Error",
+			}),
 			{
-				error: error.message || "Internal Server Error"
-			}), { status: 500 }
+				status: 500,
+				headers: { "Content-Type": "application/json" },
+			}
 		);
 	}
 }
