@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation";
 
 export default function CreateGroupPage() {
 	const [name, setName] = useState("");
@@ -18,6 +19,7 @@ export default function CreateGroupPage() {
 	const [error, setError] = useState("");
 	const [success, setSuccess] = useState(false);
 	const [types, setTypes] = useState([]);
+	const router = useRouter();
 
 	useEffect(() => {
 		async function fetchRpgTypes() {

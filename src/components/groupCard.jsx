@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare, Users } from "lucide-react";
+import Link from 'next/link';
+
 
 export default function GroupCard({ group, onJoinSuccess }) {
 
@@ -33,8 +35,9 @@ export default function GroupCard({ group, onJoinSuccess }) {
 			<CardHeader>
 				<div className="flex items-start justify-between">
 					<div className="flex-1">
-						<CardTitle className="text-2xl mb-2">{group.name}</CardTitle>
-						<CardDescription className="text-base">
+						<Link href={`/group/${group.id}`}>
+							<CardTitle className="text-2xl mb-2">{group.name}</CardTitle>
+						</Link>						<CardDescription className="text-base">
 							{group.description}
 						</CardDescription>
 					</div>

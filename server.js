@@ -2,7 +2,6 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
-import { prisma } from "./src/lib/prisma.js";
 import { auth } from "./src/lib/auth.js";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -37,6 +36,7 @@ app.prepare().then(() => {
 			if (!session) {
 				console.log("Conexão rejeitada - sem sessão válida");
 				socket.emit("auth_error", { message: "Sessão inválida" });
+				socket.emit("leaveGroup");
 				socket.disconnect();
 				return;
 			}
@@ -73,6 +73,7 @@ app.prepare().then(() => {
 			if (!session) return;
 
 			socket.join(`group_${groupId}`);
+			socket.currentGroupId = groupId;
 			console.log(`Usuário ${session.user.id} entrou no grupo ${groupId}`);
 
 			// Notifica outros usuários do grupo
@@ -100,41 +101,33 @@ app.prepare().then(() => {
 
 		// Handler para mensagens
 		socket.on("message", async (data) => {
-			if (!session || !data.msg) {
+			if (!session || !data.content || !data.groupId) {
 				socket.emit("message_error", { message: "Dados inválidos" });
 				return;
 			}
 
 			try {
-				const message = await prisma.message.create({
-					data: {
-						text: data.msg,
-						userId: session.user.id,
+				const response = await fetch(`${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/api/groups/${data.groupId}/messages`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Cookie": socket.request.headers.cookie || ""
 					},
-					include: {
-						user: {
-							select: {
-								name: true,
-								email: true
-							}
-						}
-					},
-				});
+					body: JSON.stringify({
+						content: data.content
+					})
+				})
 
-				const messageData = {
-					id: message.id,
-					text: message.text,
-					sender: message.userId,
-					senderName: message.user.name || message.user.email,
-					type: "user",
-					createdAt: message.createdAt,
-				};
+				if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.error || "Erro ao enviar mensagem");
+				}
 
-				// Envia para todos os clientes conectados
-				io.emit("message", messageData);
+				const messageData = await response.json();
 
-				console.log(`Mensagem enviada por ${session.user.id}: ${data.msg}`);
+				io.to(`group_${data.groupId}`).emit("message", messageData);
 
+				console.log(`Mensagem enviada por ${session.user.id} no grupo ${data.groupId}: ${data.content}`);
 			} catch (error) {
 				console.error("Erro ao processar mensagem:", error);
 				socket.emit("message_error", {
@@ -146,7 +139,12 @@ app.prepare().then(() => {
 		// Handler para desconexão
 		socket.on("disconnect", () => {
 			console.log(`Usuário desconectado: ${socket.id}`);
-			if (session) {
+			if (session && socket.currentGroupId) {
+				socket.to(`group_${socket.currentGroupId}`).emit("user_left", {
+					userId: session.user.id,
+					userName: session.user.name || session.user.email,
+					message: `${session.user.name || session.user.email} saiu do chat`
+				});
 				console.log(`Sessão encerrada para: ${session.user.id}`);
 			}
 		});
