@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+//Entrar no Grupo
 export async function POST(req, { params }) {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });

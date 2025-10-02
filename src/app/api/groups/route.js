@@ -3,12 +3,15 @@ import { auth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+//Listar Grupos
 export async function GET(req) {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });
 		if (!session) {
 			return new Response(
-				JSON.stringify({ error: "Unauthorized" }),
+				JSON.stringify({
+					error: "Unauthorized"
+				}),
 				{
 					status: 401,
 					headers: {
@@ -65,6 +68,7 @@ export async function GET(req) {
 	}
 }
 
+//Criar Grupo
 export async function POST(req) {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });

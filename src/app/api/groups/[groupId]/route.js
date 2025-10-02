@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
+//Detalhes do Grupo
 export async function GET(req, { params }) {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });
@@ -95,6 +96,7 @@ export async function GET(req, { params }) {
 	}
 }
 
+//Atualizar Grupo
 export async function PUT(req, { params }) {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });
@@ -177,6 +179,7 @@ export async function PUT(req, { params }) {
 	}
 }
 
+//Deletar Grupo
 export async function DELETE(req, { params }) {
 	try {
 		const session = await auth.api.getSession({ headers: req.headers });
@@ -224,17 +227,18 @@ export async function DELETE(req, { params }) {
 			}
 		});
 
-		return new Response({
-			message: "Group deleted successfully"
-		}), {
-			status: 200,
-			headers: {
-				"Content-Type": "application/json"
+		return new Response(
+			JSON.stringify({
+				message: "Group deleted successfully"
+			}),
+			{
+				status: 200,
+				headers: {
+					"Content-Type": "application/json"
+				}
 			}
-		};
+		);
 	} catch (error) {
-		console.error("Error deleting group:", error);
-
 		return new Response(
 			JSON.stringify({
 				error: error.message || "Internal Server Error",

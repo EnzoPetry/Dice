@@ -98,7 +98,7 @@ model Group {
 }
 
 model Message {
-  id      String      @id
+  id      String      @id @default(uuid())
   userId  String
   groupId   Int
   content String
