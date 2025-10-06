@@ -14,13 +14,13 @@ export async function middleware(request) {
 		return NextResponse.next();
 	}
 
-	const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+	const sessionToken = request.cookies.get('__Secure-session_token')?.value;
 
 
 	if (!sessionToken) {
 		const response = NextResponse.redirect(new URL('/login', request.url));
 
-		response.cookies.set('better-auth.session_token', '', { expires: new Date(0), path: '/' });
+		response.cookies.set('__Secure-session_token', '', { expires: new Date(0), path: '/' });
 		response.cookies.set('auth_session', '', { expires: new Date(0), path: '/' });
 
 		return response;

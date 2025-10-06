@@ -39,7 +39,7 @@ export default function RegisterPage() {
 			if (data) {
 				setMessage("Cadastro realizado com sucesso!");
 				setTimeout(() => {
-					router.replace("/login");
+					router.push("/login");
 				}, 2000);
 			}
 		} catch (error) {

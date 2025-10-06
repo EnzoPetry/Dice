@@ -34,7 +34,7 @@ export default function HomePage() {
 	}, [isAuthenticated, loading, router]);
 
 	function handleCreateGroup() {
-		router.replace("/createGroup");
+		router.push("/createGroup");
 	}
 
 	return (

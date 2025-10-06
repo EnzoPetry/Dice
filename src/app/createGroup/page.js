@@ -59,7 +59,7 @@ export default function CreateGroupPage() {
 			}
 			setSuccess(true);
 			setTimeout(() => {
-				router.replace("/home");
+				router.push("/home");
 			}, 2000);
 		} catch (error) {
 			setError(error.message);

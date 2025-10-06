@@ -21,4 +21,21 @@ export const auth = betterAuth({
         requireEmailVerification: false,
     },
     baseURL: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
+    advanced: {
+        useSecureCookies: true,
+        cookies: {
+            session_token: {
+                name: "session_token",
+                attributes: {
+                    httpOnly: true,
+                    sameSite: "lax",
+                    path: "/",
+                    secure: process.env.NODE_ENV === "production",
+                    domain: process.env.NODE_ENV === "production"
+                        ? ".projectdice.com.br"
+                        : undefined,
+                },
+            },
+        },
+    },
 });
