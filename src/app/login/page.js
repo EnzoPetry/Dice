@@ -51,6 +51,7 @@ export default function LoginPage() {
 	const handleLoginGoogle = async () => {
 		await authClient.signIn.social({
 			provider: "google",
+			callbackURL: `${process.env.NEXT_PUBLIC_URL || "http://localhost:3000"}/home`
 		});
 	}
 
