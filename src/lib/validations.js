@@ -79,3 +79,41 @@ export const messageSchema = z.object({
 		.max(1000, "Mensagem deve ter no máximo 1000 caracteres")
 		.trim()
 });
+
+export const updateUserSchema = z.object({
+	name: z
+		.string()
+		.min(1, "Nome é obrigatório")
+		.max(50, "Nome deve ter no máximo 50 caracteres")
+		.trim()
+		.transform((val) => val.replace(/\s+/g, ' ')),
+
+	email: z
+		.string()
+		.min(1, "E-mail é obrigatório")
+		.email("E-mail inválido")
+		.toLowerCase()
+		.trim(),
+});
+
+export const updatePasswordSchema = z.object({
+	currentPassword: z
+		.string()
+		.min(1, "Senha atual é obrigatória"),
+
+	newPassword: z
+		.string()
+		.min(1, "Nova senha é obrigatória")
+		.min(8, "Nova senha deve ter pelo menos 8 caracteres")
+		.max(100, "Nova senha deve ter no máximo 100 caracteres")
+		.regex(/[A-Z]/, "Nova senha deve conter pelo menos uma letra maiúscula")
+		.regex(/[a-z]/, "Nova senha deve conter pelo menos uma letra minúscula")
+		.regex(/[0-9]/, "Nova senha deve conter pelo menos um número"),
+
+	confirmNewPassword: z
+		.string()
+		.min(1, "Confirmação de senha é obrigatória"),
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+	message: "As senhas não coincidem",
+	path: ["confirmNewPassword"],
+});
