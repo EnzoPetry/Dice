@@ -48,25 +48,25 @@ export default function RegisterPage() {
 		setError("");
 		try {
 			const {
-				data: data,
-				error: error
+				data: authData,
+				error: authError
 			} = await authClient.signUp.email({
 				name: data.name,
 				email: data.email,
 				password: data.password
 			});
-			if (error) {
+			if (authError) {
 				setError(`Erro ao realizar o cadastro: ${error.message}`);
 				return;
 			}
-			if (data) {
+			if (authData) {
 				setMessage("Cadastro realizado com sucesso!");
 				setTimeout(() => {
 					router.push("/login");
 				}, 2000);
 			}
-		} catch (error) {
-			setError(`Erro no cadastro: ${error.message}`);
+		} catch (err) {
+			setError(`Erro no cadastro: ${err.message}`);
 		}
 	}
 
