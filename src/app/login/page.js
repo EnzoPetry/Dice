@@ -6,45 +6,56 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
-import { Loader2, LogIn, UserPlus } from "lucide-react";
+import { Loader2, LogIn, UserPlus, Eye, EyeOff, XCircle, CheckCircle2 } from "lucide-react";
+import { loginSchema } from "@/lib/validations";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 export default function LoginPage() {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
 	const [message, setMessage] = useState("");
-	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");
 	const router = useRouter();
+	const [showPassword, setShowPassword] = useState(false);
 
-	async function handleSubmit(e) {
-		e.preventDefault();
+	const {
+		register,
+		handleSubmit,
+		formState: { errors, isSubmitting }
+	} = useForm({
+		resolver: zodResolver(loginSchema),
+		mode: "onSubmit",
+		reValidateMode: "onChange",
+		defaultValues: {
+			email: "",
+			password: ""
+		}
+	});
+
+	const onSubmit = async (data) => {
 		setMessage("");
-		setIsLoading(true);
 		setError("");
-
 		try {
-			const { data, error } = await authClient.signIn.email({
-				email,
-				password
+			const {
+				data: authData,
+				error: authError
+			} = await authClient.signIn.email({
+				email: data.email,
+				password: data.password
 			});
-			if (error) {
-				setError(`Erro ao fazer login: ${error.message}`);
-				setIsLoading(false);
+			if (authError) {
+				setError(`Erro ao fazer login: ${authError.message}`);
 				return;
 			}
-			if (data) {
+			if (authData) {
 				setMessage("Login realizado com sucesso!");
 				setTimeout(() => {
-					console.log("Redirecionando para /chat/1");
 					router.push("/home");
 				}, 2000);
 			}
-		} catch (error) {
-			setError(`Erro ao fazer login: ${error.message}`);
-		} finally {
-			setIsLoading(false);
+		} catch (err) {
+			setError(`Erro ao fazer login: ${err.message}`);
 		}
 	}
 
@@ -68,58 +79,73 @@ export default function LoginPage() {
 							Digite suas credenciais para acessar sua conta
 						</CardDescription>
 					</CardHeader>
-
 					<CardContent className="space-y-4">
 						{error && (
 							<Alert variant="destructive" className="animate-in slide-in-from-top-2">
-								<AlertTitle>
-									{error}
-								</AlertTitle>
+								<XCircle className="h-4 w-4" />
+								<AlertTitle>Erro</AlertTitle>
+								<AlertDescription>{error}</AlertDescription>
 							</Alert>
 						)}
 						{message && !error && (
 							<Alert className="bg-green-50 border-green-200 animate-in slide-in-from-top-2">
-								<AlertTitle className="text-green-800">
-									{message}
-								</AlertTitle>
+								<CheckCircle2 className="h-4 w-4 text-green-600" />
+								<AlertTitle className="text-green-800">{message}</AlertTitle>
 							</Alert>
 						)}
 
-						<form onSubmit={handleSubmit} className="space-y-4">
+						<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 							<div className="space-y-2">
-								<Label htmlFor="email">
-									E-mail
-								</Label>
+								<Label htmlFor="email">E-mail</Label>
 								<Input
 									id="email"
 									type="email"
 									placeholder="seu@email.com"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									required
-									disabled={isLoading}
+									disabled={isSubmitting}
+									className={errors.email ? "border-destructive" : ""}
+									{...register("email")}
 								/>
+								{errors.email && (
+									<p className="text-xs text-destructive mt-1 flex items-center gap-1">
+										<XCircle className="h-3 w-3" />
+										{errors.email.message}
+									</p>
+								)}
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="password">
-									Senha
-								</Label>
-								<Input
-									id="password"
-									type="password"
-									placeholder="••••••••"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required
-									disabled={isLoading}
-								/>
+								<Label htmlFor="password">Senha</Label>
+								<div className="relative">
+									<Input
+										id="password"
+										type={showPassword ? "text" : "password"}
+										placeholder="••••••••"
+										disabled={isSubmitting}
+										className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
+										{...register("password")}
+									/>
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+										disabled={isSubmitting}
+										tabIndex={-1}
+									>
+										{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+									</button>
+								</div>
+								{errors.password && (
+									<p className="text-xs text-destructive mt-1 flex items-center gap-1">
+										<XCircle className="h-3 w-3" />
+										{errors.password.message}
+									</p>
+								)}
 							</div>
 							<Button
 								type="submit"
-								disabled={isLoading}
+								disabled={isSubmitting}
 								className="w-full h-11 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
 							>
-								{isLoading ? (
+								{isSubmitting ? (
 									<>
 										<Loader2 className="mr-2 h-5 w-5 animate-spin" />
 										Entrando...
@@ -138,7 +164,7 @@ export default function LoginPage() {
 							variant="outline"
 							className="w-full h-11 text-base font-medium border-2 hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
 							onClick={handleLoginGoogle}
-							disabled={isLoading}
+							disabled={isSubmitting}
 						>
 							<svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
 								<path
@@ -175,7 +201,7 @@ export default function LoginPage() {
 							variant="outline"
 							className="w-full h-11 text-base font-medium border-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-400 transition-all duration-200"
 							onClick={() => router.push("/register")}
-							disabled={isLoading}
+							disabled={isSubmitting}
 						>
 							<UserPlus className="mr-2 h-5 w-5" />
 							Criar nova conta
