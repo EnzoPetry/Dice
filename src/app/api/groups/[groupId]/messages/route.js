@@ -24,7 +24,7 @@ export async function GET(req, { params }) {
 		const groupIdParam = parseInt(groupId);
 
 		const messages = await prisma.message.findMany({
-			take: -1000,
+			take: -100,
 			where: {
 				groupId: groupIdParam
 			},
