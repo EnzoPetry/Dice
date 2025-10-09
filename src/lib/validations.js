@@ -4,7 +4,6 @@ export const registerSchema = z.object({
 	name: z
 		.string()
 		.min(1, "Nome é obrigatório")
-		.min(3, "Nome deve ter pelo menos 3 caracteres")
 		.max(50, "Nome deve ter no máximo 50 caracteres")
 		.trim()
 		.transform((val) => val.replace(/\s+/g, ' ')),
@@ -113,6 +112,11 @@ export const updatePasswordSchema = z.object({
 	confirmNewPassword: z
 		.string()
 		.min(1, "Confirmação de senha é obrigatória"),
+
+	revokeOtherSessions: z
+		.boolean()
+		.optional()
+		.default(false),
 }).refine((data) => data.newPassword === data.confirmNewPassword, {
 	message: "As senhas não coincidem",
 	path: ["confirmNewPassword"],

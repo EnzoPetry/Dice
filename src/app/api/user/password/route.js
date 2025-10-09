@@ -33,14 +33,13 @@ export async function PUT(req) {
 				}
 			)
 		}
-		const { revoke, currentPassword, newPassword } = validation.data;
-
+		const {revokeOtherSessions, currentPassword, newPassword } = validation.data;
 		try {
 			await auth.api.changePassword({
 				body: {
 					currentPassword,
 					newPassword,
-					revokeOtherSessions: revoke ? true : false
+					revokeOtherSessions: revokeOtherSessions ? true : false
 				},
 				headers: req.headers
 			});

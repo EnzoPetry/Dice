@@ -27,12 +27,39 @@ export async function GET(req) {
 			},
 			select: {
 				name: true,
-				email: true
+				email: true,
+				accounts: {
+					select: {
+						providerId: true
+					}
+				}
 			}
 		});
 
+		if (!user) {
+			return new Response(
+				JSON.stringify({
+					error: "User not found"
+				}),
+				{
+					status: 404,
+					headers: {
+						"Content-Type": "application/json"
+					}
+				}
+			);
+		}
+
+		const hasGoogleAuth = user.accounts.some(
+			account => account.providerId === "google"
+		);
+
 		return new Response(
-			JSON.stringify(user),
+			JSON.stringify({
+				name: user.name,
+				email: user.email,
+				canChangeEmail: !hasGoogleAuth
+			}),
 			{
 				status: 200,
 				headers: {
