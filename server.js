@@ -3,6 +3,7 @@ import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
 import { auth } from "./src/lib/auth.js";
+import { setIO } from "./src/lib/socket.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
@@ -22,6 +23,7 @@ app.prepare().then(() => {
 			credentials: true,
 		},
 	});
+	setIO(io);
 
 	io.on("connection", async (socket) => {
 		console.log("Nova conexão socket:", socket.id);

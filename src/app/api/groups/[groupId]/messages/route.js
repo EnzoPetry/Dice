@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { emitToGroup, getIO } from "@/lib/socket";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +86,7 @@ export async function GET(req, { params }) {
 //Criar Mensagem do Grupo
 export async function POST(req, { params }) {
 	try {
+		getIO();
 		const session = await auth.api.getSession({ headers: req.headers });
 		if (!session) {
 			return new Response(
@@ -193,6 +195,7 @@ export async function POST(req, { params }) {
 			senderName: message.user.name,
 			sendAt: message.sendAt,
 		};
+		emitToGroup(groupIdParam, "message", formattedMessage);
 
 		return new Response(
 			JSON.stringify(formattedMessage),
