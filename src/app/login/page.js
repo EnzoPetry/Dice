@@ -16,12 +16,14 @@ import { useForm } from "react-hook-form";
 export default function LoginPage() {
 	const [message, setMessage] = useState("");
 	const [error, setError] = useState("");
+	const [emailNotVerified, setEmailNotVerified] = useState(false);
 	const router = useRouter();
 	const [showPassword, setShowPassword] = useState(false);
 
 	const {
 		register,
 		handleSubmit,
+		watch,
 		formState: { errors, isSubmitting }
 	} = useForm({
 		resolver: zodResolver(loginSchema),
@@ -33,9 +35,13 @@ export default function LoginPage() {
 		}
 	});
 
+	const emailValue = watch("email");
+
 	const onSubmit = async (data) => {
 		setMessage("");
 		setError("");
+		setEmailNotVerified(false);
+
 		try {
 			const {
 				data: authData,
@@ -45,6 +51,18 @@ export default function LoginPage() {
 				password: data.password
 			});
 			if (authError) {
+				const errorMessage = authError.message.toLowerCase();
+
+				if (errorMessage.includes("email not verified") ||
+					errorMessage.includes("e-mail não verificado") ||
+					errorMessage.includes("not verified")) {
+					setEmailNotVerified(true);
+					await authClient.sendVerificationEmail({
+						email: emailValue.toLowerCase(),
+					});
+					return;
+				}
+
 				setError(`Erro ao fazer login: ${authError.message}`);
 				return;
 			}
@@ -92,6 +110,20 @@ export default function LoginPage() {
 								<CheckCircle2 className="h-4 w-4 text-green-600" />
 								<AlertTitle className="text-green-800">{message}</AlertTitle>
 							</Alert>
+						)}
+
+						{emailNotVerified && (
+							<>
+								<Alert className="animate-in slide-in-from-top-2 bg-yellow-50 border-yellow-200">
+									<AlertTitle className="text-yellow-800">
+										E-mail não verificado
+									</AlertTitle>
+									<AlertDescription className="text-yellow-700 space-y-2">
+										<p>Reenviamos um novo link de verificação para seu e-mail.</p>
+										<p>Verifique sua caixa de entrada e clique no link para ativar sua conta.</p>
+									</AlertDescription>
+								</Alert>
+							</>
 						)}
 
 						<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

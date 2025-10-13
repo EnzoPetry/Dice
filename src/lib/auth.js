@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma.js";
+import { sendVerificationEmails } from "./email.js";
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {
@@ -18,7 +19,32 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: true,
-        requireEmailVerification: false,
+        requireEmailVerification: true,
+    },
+    emailVerification: {
+        sendOnSignUp: true,
+        expiresIn: 24 * 60 * 60,
+        autoSignInAfterVerification: false,
+        sendVerificationEmail: async ({ user, url, token }) => {
+            try {
+                const result = await sendVerificationEmails(
+                    user.email,
+                    token,
+                    user.name
+                );
+
+                if (!result.success) {
+                    console.warn(`Falha ao enviar e-mail de verificação para ${user.email}`);
+                } else {
+                    console.log(`E-mail de verificação enviado para ${user.email}`);
+                }
+
+                return result;
+            } catch (error) {
+                console.error("Erro ao enviar e-mail de verificação");
+                throw new Error("Falha ao enviar e-mail de verificação");
+            }
+        },
     },
     baseURL: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
     advanced: {

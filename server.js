@@ -125,10 +125,6 @@ app.prepare().then(() => {
 					throw new Error(errorData.error || "Erro ao enviar mensagem");
 				}
 
-				const messageData = await response.json();
-
-				io.to(`group_${data.groupId}`).emit("message", messageData);
-
 				console.log(`Mensagem enviada por ${session.user.id} no grupo ${data.groupId}: ${data.content}`);
 			} catch (error) {
 				console.error("Erro ao processar mensagem:", error);
