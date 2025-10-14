@@ -7,8 +7,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle, Mail } from "lucide-react";
 
-export default function VerifyEmailPage() {
-	const [status, setStatus] = useState("verifying"); // verifying, success, error
+function VerifyEmailContent() {
+	const [status, setStatus] = useState("verifying");
 	const [message, setMessage] = useState("");
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -151,5 +151,20 @@ export default function VerifyEmailPage() {
 				</CardContent>
 			</Card>
 		</div>
+	);
+}
+
+export default function VerifyEmailPage() {
+	return (
+		<Suspense fallback={
+			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+				<div className="flex flex-col items-center gap-4">
+					<Loader2 className="h-8 w-8 animate-spin text-primary" />
+					<p className="text-muted-foreground">Carregando...</p>
+				</div>
+			</div>
+		}>
+			<VerifyEmailContent />
+		</Suspense>
 	);
 }
