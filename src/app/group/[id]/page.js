@@ -1,10 +1,9 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
-import { useSession } from "@/hooks/useSession"
+import { use, useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { useSession } from "@/hooks/useSession";
 import { useRouter } from "next/navigation";
 import { io } from "socket.io-client";
-import { useRef } from "react";
 
 export default function GroupPage({ params }) {
 	const { id } = use(params);
@@ -13,10 +12,11 @@ export default function GroupPage({ params }) {
 	const [messages, setMessages] = useState([]);
 	const [notifications, setNotifications] = useState([]);
 	const [input, setInput] = useState("");
-	const [isLoading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [isVisible, setIsVisible] = useState(false);
 	const messagesEndRef = useRef(null);
 	const messagesContainerRef = useRef(null);
+	const isFirstLoadRef = useRef(true);
 	const router = useRouter();
 	const { session, loading, isAuthenticated } = useSession();
 
@@ -24,12 +24,12 @@ export default function GroupPage({ params }) {
 		const items = [
 			...messages.map(msg => ({
 				...msg,
-				itemType: 'message',
+				itemType: "message",
 				timestamp: new Date(msg.sendAt || msg.createdAt).getTime()
 			})),
 			...notifications.map(notif => ({
 				...notif,
-				itemType: 'notification',
+				itemType: "notification",
 				timestamp: notif.timestamp || Date.now()
 			}))
 		];
@@ -37,27 +37,27 @@ export default function GroupPage({ params }) {
 		return items.sort((a, b) => a.timestamp - b.timestamp);
 	}, [messages, notifications]);
 
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			const res = await fetch(`/api/groups/${id}`);
 			const data = await res.json();
 			if (data.error) throw new Error(data.error);
 			setGroup(data);
 		} catch (error) {
-			setError(error.message || 'Failed to load messages');
+			setError(error.message || "Failed to load messages");
 		}
-	}
+	}, [id]);
 
-	const fetchMessages = async () => {
+	const fetchMessages = useCallback(async () => {
 		try {
 			const res = await fetch(`/api/groups/${id}/messages`);
 			const data = await res.json();
 			if (data.error) throw new Error(data.error);
 			setMessages(data);
 		} catch (error) {
-			setError(error.message || 'Failed to load messages');
+			setError(error.message || "Failed to load messages");
 		}
-	}
+	}, [id]);
 
 	const sendMessage = () => {
 		if (socket && input.trim() !== "") {
@@ -71,9 +71,9 @@ export default function GroupPage({ params }) {
 		}
 	};
 
-	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	};
+	const scrollToBottom = useCallback((behavior = "smooth") => {
+		messagesEndRef.current?.scrollIntoView({ behavior: behavior });
+	}, []);
 
 	const handleKeyPress = (e) => {
 		if (e.key === "Enter" && input.trim() !== "") {
@@ -82,23 +82,45 @@ export default function GroupPage({ params }) {
 	};
 
 	useEffect(() => {
+		if (combinedItems.length === 0) return;
+
+		if (isFirstLoadRef.current) {
+			setTimeout(() => {
+				scrollToBottom("auto");
+			}, 50);
+			isFirstLoadRef.current = false;
+
+			setTimeout(() => {
+				setIsVisible(true);
+			}, 50);
+		} else {
+			scrollToBottom("smooth");
+		}
+	}, [combinedItems.length, scrollToBottom]);
+
+	useEffect(() => {
 		if (!loading && !isAuthenticated) {
-			router.push('/login');
+			router.push("/login");
 			return;
 		}
 		if (isAuthenticated) {
 			fetchData();
-			fetchMessages();
 		}
-	}, [isAuthenticated, loading, router, id]);
+	}, [isAuthenticated, loading, router, id, fetchData]);
 
 	useEffect(() => {
-		if (!id) return;
+		if (!id || !isAuthenticated) return;
+
+		fetchMessages();
 
 		const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000");
-		setSocket(newSocket);
 
-		newSocket.emit("joinGroup", id);
+		newSocket.on("connect", () => {
+			console.log("Socket conectado com ID:", newSocket.id);
+			setTimeout(() => {
+				newSocket.emit("joinGroup", id);
+			}, 100);
+		});
 
 		newSocket.on("message", (msg) => {
 			console.log("Mensagem recebida:", msg);
@@ -109,7 +131,7 @@ export default function GroupPage({ params }) {
 			console.log("Usuário entrou:", data);
 			const notification = {
 				id: `notif-joined-${Date.now()}`,
-				type: 'joined',
+				type: "joined",
 				userId: data.userId,
 				userName: data.userName,
 				message: data.message || `${data.userName} entrou no grupo`,
@@ -122,7 +144,7 @@ export default function GroupPage({ params }) {
 			console.log("Usuário saiu:", data);
 			const notification = {
 				id: `notif-left-${Date.now()}`,
-				type: 'left',
+				type: "left",
 				userId: data.userId,
 				userName: data.userName,
 				message: data.message || `${data.userName} saiu do grupo`,
@@ -130,16 +152,13 @@ export default function GroupPage({ params }) {
 			};
 			setNotifications((prev) => [...prev, notification]);
 		});
+		setSocket(newSocket);
 
 		return () => {
 			newSocket.emit("leaveGroup", id);
 			newSocket.disconnect();
 		};
-	}, [id]);
-
-	useEffect(() => {
-		scrollToBottom();
-	}, [combinedItems]);
+	}, [id, isAuthenticated, fetchMessages]);
 
 	if (loading) {
 		return (
@@ -195,6 +214,10 @@ export default function GroupPage({ params }) {
 							<div
 								ref={messagesContainerRef}
 								className="flex-1 overflow-y-auto p-4 space-y-3"
+								style={{
+									opacity: isVisible ? 1 : 0,
+									transition: "opacity 0.2s ease-in-out"
+								}}
 							>
 								{combinedItems.length === 0 ? (
 									<div className="flex items-center justify-center h-full text-muted-foreground">
@@ -202,7 +225,7 @@ export default function GroupPage({ params }) {
 									</div>
 								) : (
 									combinedItems.map((item, i) => {
-										if (item.itemType === 'notification') {
+										if (item.itemType === "notification") {
 											return (
 												<div
 													key={item.id || `notif-${i}`}
@@ -223,12 +246,12 @@ export default function GroupPage({ params }) {
 										return (
 											<div
 												key={item.id || `msg-${i}`}
-												className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+												className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
 											>
 												<div
 													className={`max-w-[70%] rounded-lg px-4 py-2 ${isOwnMessage
-														? 'bg-primary text-primary-foreground'
-														: 'bg-muted'
+														? "bg-primary text-primary-foreground"
+														: "bg-muted"
 														}`}
 												>
 													{!isOwnMessage && (
@@ -246,11 +269,11 @@ export default function GroupPage({ params }) {
 													</p>
 													<p className="text-[10px] mt-1 opacity-70">
 														{item.sendAt || item.createdAt
-															? new Date(item.sendAt || item.createdAt).toLocaleTimeString('pt-BR', {
-																hour: '2-digit',
-																minute: '2-digit'
+															? new Date(item.sendAt || item.createdAt).toLocaleTimeString("pt-BR", {
+																hour: "2-digit",
+																minute: "2-digit"
 															})
-															: ''
+															: ""
 														}
 													</p>
 												</div>
