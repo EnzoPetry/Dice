@@ -49,7 +49,7 @@ export default function ResendVerificationPage() {
                         <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                             <Mail className="w-8 h-8 text-green-600" />
                         </div>
-                        <CardTitle className="text-2xl">E-mail Reenviado! 📧</CardTitle>
+                        <CardTitle className="text-2xl">E-mail Reenviado!</CardTitle>
                         <CardDescription>
                             Verifique sua caixa de entrada
                         </CardDescription>
@@ -63,35 +63,16 @@ export default function ResendVerificationPage() {
                             </AlertDescription>
                         </Alert>
 
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                            <p className="text-sm text-blue-800 mb-2">
-                                <strong>Próximos passos:</strong>
-                            </p>
-                            <ol className="text-sm text-blue-700 space-y-1 ml-4 list-decimal">
-                                <li>Abra sua caixa de entrada</li>
-                                <li>Procure por um e-mail do Project Dice</li>
-                                <li>Clique no link de verificação</li>
-                                <li>Faça login e comece a jogar!</li>
-                            </ol>
-                        </div>
-
                         <Alert className="border-yellow-200 bg-yellow-50">
                             <AlertDescription className="text-sm text-yellow-800">
                                 <strong>Não recebeu?</strong> Verifique sua caixa de spam ou lixo eletrônico.
                             </AlertDescription>
                         </Alert>
 
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => setSuccess(false)}
-                                className="flex-1"
-                            >
-                                Reenviar novamente
-                            </Button>
+                        <div className="flex">
                             <Button
                                 onClick={() => router.push("/login")}
-                                className="flex-1"
+                                className="w-full h-11 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                             >
                                 Ir para Login
                             </Button>
@@ -148,7 +129,7 @@ export default function ResendVerificationPage() {
 
                         <Button
                             type="submit"
-                            className="w-full h-11"
+                            className="w-full h-11 text-base font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                             disabled={loading || !email}
                         >
                             {loading ? (

@@ -171,6 +171,14 @@ export default function LoginPage() {
 										{errors.password.message}
 									</p>
 								)}
+								<div className="text-right">
+									<a
+										href="/password-reset"
+										className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+									>
+										Esqueci minha senha
+									</a>
+								</div>
 							</div>
 							<Button
 								type="submit"
