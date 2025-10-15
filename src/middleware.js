@@ -6,7 +6,7 @@ export async function middleware(request) {
 	console.log(`Middleware executado para: ${pathname}`);
 
 	// Rotas públicas que não precisam de autenticação
-	const publicRoutes = ['/', '/login', '/register'];
+	const publicRoutes = ['/', '/login', '/register','/verify-email', '/resend-verification', '/password-reset'];
 	const isApiRoute = pathname.startsWith('/api/');
 	const isStaticFile = pathname.startsWith('/_next/') || pathname.startsWith('/favicon') || pathname.includes('.');
 
