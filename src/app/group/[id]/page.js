@@ -10,7 +10,6 @@ export default function GroupPage({ params }) {
 	const [group, setGroup] = useState(null);
 	const [socket, setSocket] = useState(null);
 	const [messages, setMessages] = useState([]);
-	const [notifications, setNotifications] = useState([]);
 	const [input, setInput] = useState("");
 	const [error, setError] = useState(null);
 	const [isVisible, setIsVisible] = useState(false);
@@ -21,21 +20,14 @@ export default function GroupPage({ params }) {
 	const { session, loading, isAuthenticated } = useSession();
 
 	const combinedItems = useMemo(() => {
-		const items = [
-			...messages.map(msg => ({
-				...msg,
-				itemType: "message",
-				timestamp: new Date(msg.sendAt || msg.createdAt).getTime()
-			})),
-			...notifications.map(notif => ({
-				...notif,
-				itemType: "notification",
-				timestamp: notif.timestamp || Date.now()
-			}))
-		];
-
-		return items.sort((a, b) => a.timestamp - b.timestamp);
-	}, [messages, notifications]);
+		return messages.map(msg => ({
+			...msg,
+			itemType: (msg.type === "joined" || msg.type === "left") ? "notification" : "message",
+			timestamp: msg.sendAt
+				? new Date(msg.sendAt).getTime()
+				: (msg.createdAt ? new Date(msg.createdAt).getTime() : msg.timestamp || Date.now())
+		})).sort((a, b) => a.timestamp - b.timestamp);
+	}, [messages]);
 
 	const fetchData = useCallback(async () => {
 		try {
@@ -128,29 +120,35 @@ export default function GroupPage({ params }) {
 		});
 
 		newSocket.on("user_joined", (data) => {
-			console.log("Usuário entrou:", data);
-			const notification = {
-				id: `notif-joined-${Date.now()}`,
-				type: "joined",
-				userId: data.userId,
-				userName: data.userName,
-				message: data.message || `${data.userName} entrou no grupo`,
-				timestamp: Date.now()
-			};
-			setNotifications((prev) => [...prev, notification]);
+			if (session?.user?.id !== data.userId) {
+				console.log("Usuário entrou:", data);
+				const notification = {
+					id: `notif-joined-${Date.now()}-${data.userId}`,
+					type: "joined",
+					userId: data.userId,
+					userName: data.userName,
+					message: data.message || `${data.userName} entrou no grupo`,
+					sendAt: data.sendAt || new Date(data.timestamp).toISOString(),
+					timestamp: data.timestamp
+				};
+				setMessages((prev) => [...prev, notification]);
+			}
 		});
 
 		newSocket.on("user_left", (data) => {
-			console.log("Usuário saiu:", data);
-			const notification = {
-				id: `notif-left-${Date.now()}`,
-				type: "left",
-				userId: data.userId,
-				userName: data.userName,
-				message: data.message || `${data.userName} saiu do grupo`,
-				timestamp: Date.now()
-			};
-			setNotifications((prev) => [...prev, notification]);
+			if (session?.user?.id !== data.userId) {
+				console.log("Usuário saiu:", data);
+				const notification = {
+					id: `notif-left-${Date.now()}-${data.userId}`,
+					type: "left",
+					userId: data.userId,
+					userName: data.userName,
+					message: data.message || `${data.userName} saiu do grupo`,
+					sendAt: data.sendAt || new Date(data.timestamp).toISOString(),
+					timestamp: data.timestamp
+				};
+				setMessages((prev) => [...prev, notification]);
+			}
 		});
 		setSocket(newSocket);
 

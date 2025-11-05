@@ -25,6 +25,7 @@ model User {
   accounts      Account[]
   messages      Message[]
   userGroups    UserGroup[]
+  JoinRequests     JoinRequest[]
 
   @@unique([email])
   @@map("user")
@@ -90,10 +91,12 @@ model Group {
   description String
   createdAt   DateTime
   status      Boolean
+  requiresApproval Boolean       @default(false)
   rpgTypeId   Int
   rpgType     RpgType    @relation(fields: [rpgTypeId], references: [id])
   messages    Message[]
   userGroups  UserGroup[]
+  joinRequests     JoinRequest[]
 
   @@map("group")
 }
@@ -120,4 +123,18 @@ model UserGroup {
 
   @@id([userId, groupId])
   @@map("users_groups")
+}
+
+model JoinRequest {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  groupId   Int
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("join_request")
 }

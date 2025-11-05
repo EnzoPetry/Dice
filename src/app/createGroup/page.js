@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Plus, ArrowLeft, CheckCircle2, XCircle, Gamepad2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox"
+import { Loader2, Plus, ArrowLeft, CheckCircle2, XCircle, Gamepad2, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +21,7 @@ export default function CreateGroupPage() {
 	const [isLoadingTypes, setIsLoadingTypes] = useState(true);
 	const [submitError, setSubmitError] = useState("");
 	const [submitSuccess, setSubmitSuccess] = useState(false);
+	const [requiresApproval, setRequiresApproval] = useState(false);
 	const router = useRouter();
 	const { loading, isAuthenticated } = useSession();
 
@@ -35,7 +37,8 @@ export default function CreateGroupPage() {
 		defaultValues: {
 			name: "",
 			description: "",
-			rpgTypeId: ""
+			rpgTypeId: "",
+			requiresApproval: false
 		}
 	});
 
@@ -84,6 +87,7 @@ export default function CreateGroupPage() {
 					name: data.name,
 					description: data.description,
 					rpgTypeId: parseInt(data.rpgTypeId),
+					requiresApproval: requiresApproval,
 				}),
 			});
 
@@ -242,6 +246,27 @@ export default function CreateGroupPage() {
 										{errors.rpgTypeId.message}
 									</p>
 								)}
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="requiresApproval" className="text-base font-semibold">
+									Aprovar novos membros
+								</Label>
+								<div className="flex">
+									<p className="text-sm mt-1 flex-1 text-muted-foreground">
+										Quando selecionado, um admin precisará aprovar manualmente cada solicitação de entrada no grupo.
+									</p>
+									<Checkbox
+										id="requiresApproval"
+										checked={requiresApproval}
+										onCheckedChange={(checked) => {
+											setRequiresApproval(checked);
+											setValue("requiresApproval", checked);
+										}}
+										disabled={isSubmitting || submitSuccess}
+										className="h-5 w-5 mt-1 rounded border-blue-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+									/>
+								</div>
 							</div>
 
 							<div className="flex gap-3 pt-4">

@@ -38,17 +38,19 @@ export default function HomePage() {
 	}
 
 	return (
-		<div className="min-h-screen min-w-screen  p-8">
-			<div className="mx-auto">
+		<div className="min-h-screen min-w-screen p-8">
+			<div className="mx-32">
 				<div className="flex justify-end mb-6">
 					<Button onClick={handleCreateGroup} size="lg">
 						Criar Novo Grupo
 					</Button>
 				</div>
 
-				<div className="grid grid-cols-1 gap-4">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 					{group.map((group) => (
-						<GroupCard key={group.id} group={group} onJoinSuccess={fetchGroup} />
+						<div key={group.id} className="min-w-0">
+							<GroupCard key={group.id} group={group} onJoinSuccess={fetchGroup} />
+						</div>
 					))}
 				</div>
 			</div>

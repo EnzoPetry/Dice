@@ -78,11 +78,17 @@ app.prepare().then(() => {
 			socket.currentGroupId = groupId;
 			console.log(`Usuário ${session.user.id} entrou no grupo ${groupId}`);
 
+			const serverTimestamp = Date.now();
+			const serverDate = new Date();
+
 			// Notifica outros usuários do grupo
 			socket.to(`group_${groupId}`).emit("user_joined", {
+				id: `joined-${serverTimestamp}-${session.user.id}`,
 				userId: session.user.id,
 				userName: session.user.name || session.user.email,
-				message: `${session.user.name || session.user.email} entrou no chat`
+				message: `${session.user.name || session.user.email} entrou no chat`,
+				timestamp: serverTimestamp,
+				sendAt: serverDate.toISOString()
 			});
 		});
 
@@ -93,11 +99,17 @@ app.prepare().then(() => {
 			socket.leave(`group_${groupId}`);
 			console.log(`Usuário ${session.user.id} saiu do grupo ${groupId}`);
 
+			const serverTimestamp = Date.now();
+			const serverDate = new Date();
+
 			// Notifica outros usuários do grupo
 			socket.to(`group_${groupId}`).emit("user_left", {
+				id: `left-${serverTimestamp}-${session.user.id}`,
 				userId: session.user.id,
 				userName: session.user.name || session.user.email,
-				message: `${session.user.name || session.user.email} saiu do chat`
+				message: `${session.user.name || session.user.email} saiu do chat`,
+				timestamp: serverTimestamp,
+				sendAt: serverDate.toISOString()
 			});
 		});
 
@@ -137,11 +149,18 @@ app.prepare().then(() => {
 		// Handler para desconexão
 		socket.on("disconnect", () => {
 			console.log(`Usuário desconectado: ${socket.id}`);
+
+			const serverTimestamp = Date.now();
+			const serverDate = new Date();
+
 			if (session && socket.currentGroupId) {
 				socket.to(`group_${socket.currentGroupId}`).emit("user_left", {
+					id: `left-${serverTimestamp}-${session.user.id}`,
 					userId: session.user.id,
 					userName: session.user.name || session.user.email,
-					message: `${session.user.name || session.user.email} saiu do chat`
+					message: `${session.user.name || session.user.email} saiu do chat`,
+					timestamp: serverTimestamp,
+					sendAt: serverDate.toISOString()
 				});
 				console.log(`Sessão encerrada para: ${session.user.id}`);
 			}

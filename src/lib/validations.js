@@ -68,7 +68,12 @@ export const createGroupSchema = z.object({
 		.transform((val) => parseInt(val, 10))
 		.refine((val) => !isNaN(val) && val > 0, {
 			message: "Tipo de RPG inválido"
-		})
+		}),
+
+	requiresApproval: z
+		.boolean()
+		.optional()
+		.default(false),
 });
 
 export const messageSchema = z.object({

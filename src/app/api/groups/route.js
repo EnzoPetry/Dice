@@ -28,6 +28,7 @@ export async function GET(req) {
 				description: true,
 				createdAt: true,
 				status: true,
+				requiresApproval: true,
 				rpgType: {
 					select: {
 						id: true,
@@ -39,6 +40,25 @@ export async function GET(req) {
 						userGroups: true,
 						messages: true
 					}
+				},
+				userGroups: {
+					where: {
+						userId: session.user.id
+					},
+					select: {
+						userId: true,
+						role: true
+					}
+				},
+				joinRequests: {
+					where: {
+						userId: session.user.id
+					},
+					select: {
+						id: true,
+						status: true,
+						createdAt: true
+					}
 				}
 			},
 			orderBy: {
@@ -46,8 +66,33 @@ export async function GET(req) {
 			},
 		});
 
+		const groupsWithUserStatus = groups.map(group => {
+			const userGroup = group.userGroups[0];
+			const joinRequest = group.joinRequests[0];
+
+			return {
+				id: group.id,
+				name: group.name,
+				description: group.description,
+				createdAt: group.createdAt,
+				status: group.status,
+				requiresApproval: group.requiresApproval,
+				rpgType: group.rpgType,
+				_count: group._count,
+				userStatus: {
+					isMember: !!userGroup,
+					isPending: !!joinRequest && joinRequest.status === 'pending',
+					isRejected: !!joinRequest && joinRequest.status === 'rejected',
+					isApproved: !!joinRequest && joinRequest.status === 'approved',
+					role: userGroup?.role || null,
+					requestId: joinRequest?.id || null,
+					requestedAt: joinRequest?.createdAt || null
+				}
+			};
+		});
+
 		return new Response(
-			JSON.stringify(groups),
+			JSON.stringify(groupsWithUserStatus),
 			{
 				status: 200,
 				headers: {
@@ -84,7 +129,7 @@ export async function POST(req) {
 			);
 		}
 
-		const { name, description, rpgTypeId } = await req.json();
+		const { name, description, rpgTypeId, requiresApproval } = await req.json();
 
 		if (!name || !description || !rpgTypeId) {
 			return new Response(
@@ -118,6 +163,7 @@ export async function POST(req) {
 				description,
 				createdAt: new Date(),
 				status: true,
+				requiresApproval: requiresApproval || false,
 				rpgTypeId: rpgType.id
 			},
 			include: {
