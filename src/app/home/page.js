@@ -49,7 +49,7 @@ export default function HomePage() {
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 					{group.map((group) => (
 						<div key={group.id} className="min-w-0">
-							<GroupCard key={group.id} group={group} onJoinSuccess={fetchGroup} />
+							<GroupCard key={group.id} group={group} />
 						</div>
 					))}
 				</div>

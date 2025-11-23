@@ -1,208 +1,140 @@
 "use client"
 import React from 'react';
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Users, Clock, UserPlus, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, ArrowRight, Calendar } from "lucide-react";
 import Link from 'next/link';
 
 
-export default function GroupCard({ group, onJoinSuccess }) {
-
-	const [joinStatus, setJoinStatus] = useState(null);
-	const [isLoading, setIsLoading] = useState(false);
-
-	// Estado inicial baseado no userStatus do backend
+export default function GroupCard({ group }) {
 	const { userStatus } = group;
 	const isMember = userStatus?.isMember || false;
 	const isPending = userStatus?.isPending || false;
 	const isRejected = userStatus?.isRejected || false;
 
-	const handleJoinGroup = async () => {
-		setIsLoading(true);
-		setJoinStatus(null);
-
-		try {
-			const res = await fetch(`/api/groups/${group.id}/join`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			})
-			const data = await res.json();
-
-			if (!res.ok) {
-				if (data.error === "Already a member of this group") {
-					setJoinStatus({
-						type: "info",
-						message: "Você já é membro deste grupo!"
-					});
-					if (onJoinSuccess) {
-						onJoinSuccess();
-					}
-					return;
-				}
-
-				if (data.error === "Join request already pending") {
-					setJoinStatus({
-						type: "pending",
-						message: "Você já tem uma solicitação pendente para este grupo."
-					});
-					return;
-				}
-
-				throw new Error(data.error || "Failed to join group");
-			}
-
-			if (data.requiresApproval) {
-				setJoinStatus({
-					type: "pending",
-					message: "Solicitação enviada! Aguarde a aprovação do administrador."
-				});
-			} else {
-				setJoinStatus({
-					type: "success",
-					message: "Você entrou no grupo!"
-				});
-			}
-
-			if (onJoinSuccess) {
-				onJoinSuccess();
-			}
-		} catch (error) {
-			setJoinStatus({
-				type: "error",
-				message: error.message || "Erro ao entrar no grupo"
-			});
-		} finally {
-			setIsLoading(false);
-		}
-	}
-
-	const getButtonConfig = () => {
+	const getMembershipBadge = () => {
 		if (isMember) {
-			return {
-				text: "Membro do Grupo",
-				icon: <CheckCircle2 className="mr-2 h-4 w-4" />,
-				disabled: true,
-				variant: "outline",
-				className: "border-green-200 text-green-700"
-			};
+			return (
+				<Badge variant="default" className="bg-emerald-500 hover:bg-emerald-600 text-white border-0 shadow-sm">
+					<CheckCircle2 className="w-3 h-3 mr-1" />
+					Membro
+				</Badge>
+			);
 		}
 
-		if (isPending || joinStatus?.type === "pending") {
-			return {
-				text: "Aguardando Aprovação",
-				icon: <Clock className="mr-2 h-4 w-4" />,
-				disabled: true,
-				variant: "outline",
-				className: "border-yellow-200 text-yellow-700"
-			};
+		if (isPending) {
+			return (
+				<Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">
+					<Clock className="w-3 h-3 mr-1" />
+					Aguardando
+				</Badge>
+			);
 		}
 
 		if (isRejected) {
-			return {
-				text: "Solicitar Novamente",
-				icon: null,
-				disabled: true,
-				variant: "default",
-				className: "border-red-200 text-red-700"
-			};
+			return (
+				<Badge variant="destructive" className="bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100">
+					<XCircle className="w-3 h-3 mr-1" />
+					Rejeitado
+				</Badge>
+			);
 		}
 
-		if (joinStatus?.type === "success") {
-			return {
-				text: "Entrou no Grupo!",
-				icon: <CheckCircle2 className="mr-2 h-4 w-4" />,
-				disabled: true,
-				variant: "outline",
-				className: "border-green-200 text-green-700"
-			};
-		}
-
-		return {
-			text: "Entrar no Grupo",
-			icon: null,
-			disabled: false,
-			variant: "default",
-			className: ""
-		};
+		return null;
 	};
 
-	const buttonConfig = getButtonConfig();
+	// Formatar data de criação
+	const formatDate = (dateString) => {
+		const date = new Date(dateString);
+		const now = new Date();
+		const diffTime = Math.abs(now - date);
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+		if (diffDays === 0) return "Hoje";
+		if (diffDays === 1) return "Ontem";
+		if (diffDays < 7) return `${diffDays} dias atrás`;
+		if (diffDays < 30) return `${Math.floor(diffDays / 7)} semanas atrás`;
+		if (diffDays < 365) return `${Math.floor(diffDays / 30)} meses atrás`;
+		return date.toLocaleDateString('pt-BR', { year: 'numeric', month: 'short' });
+	};
 
 	return (
-		<Card id={`grupo-${group.id}`} className="flex flex-col h-[400px]" >
-			<CardHeader>
+		<Card
+			id={`grupo-${group.id}`}
+			className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-2 hover:border-primary/20 bg-gradient-to-br from-white to-gray-50/50"
+		>
+			{/* Gradiente decorativo no topo */}
+			<div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+
+			<CardHeader className="block space-y-4 pb-4">
+				{/* Status Badge flutuante */}
+				{getMembershipBadge() && (
+					<div className="flex m-0 justify-end">
+						{getMembershipBadge()}
+					</div>
+				)}
 				<Link href={`/group/${group.id}`}>
-					<CardTitle className="text-2xl mb-2 hover:text-primary transition-colors break-all whitespace-normal  line-clamp-2">
+					<CardTitle className="text-2xl font-bold mb-2 hover:text-primary transition-colors cursor-pointer break-words line-clamp-2">
 						{group.name}
 					</CardTitle>
 				</Link>
-				<div className="space-y-4">
-					<Badge variant="secondary" className="w-fit">
+
+				{/* Badge do tipo de RPG com estilo melhorado */}
+				<div className="flex items-center gap-2 mt-3">
+					<Badge variant="secondary" className="bg-gradient-to-r from-purple-50 to-blue-50 text-purple-700 border-purple-200 font-semibold">
 						{group.rpgType.name}
 					</Badge>
-					<div className="flex gap-6">
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<Users className="w-4 h-4 text-blue-500" />
-							<span className="font-medium text-foreground">{group._count.userGroups}</span>
-							<span>membros</span>
-						</div>
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<MessageSquare className="w-4 h-4 text-green-500" />
-							<span className="font-medium text-foreground">{group._count.messages}</span>
-							<span>mensagens</span>
-						</div>
+					{group.createdAt && (
+						<span className="text-xs text-muted-foreground flex items-center gap-1">
+							<Calendar className="w-3 h-3" />
+							{formatDate(group.createdAt)}
+						</span>
+					)}
+				</div>
+
+				{/* Estatísticas com ícones melhorados */}
+				<div className="flex gap-4 pt-2">
+					<div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50/50 border border-blue-100 transition-colors group-hover:bg-blue-100/50">
+						<span className="text-xs text-blue-600/70 font-medium">Membros {group._count.userGroups}</span>
+					</div>
+					<div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50/50 border border-emerald-100 transition-colors group-hover:bg-emerald-100/50">
+						<span className="text-xs text-emerald-600/70 font-medium">Mensagens {group._count.messages}</span>
 					</div>
 				</div>
 			</CardHeader>
-			<CardContent className="flex-1 flex flex-col justify-between space-y-4">
-				<CardDescription className="text-base break-all whitespace-normal line-clamp-4">
+
+			<CardContent className="block space-y-4 pt-0">
+				{/* Descrição com melhor tipografia */}
+				<CardDescription className="block text-sm break-words line-clamp-3 leading-relaxed text-gray-600">
 					{group.description}
 				</CardDescription>
-				<div className='flex gap-8'>
+
+				{/* Botão de ação com animação */}
+				<Link href={`/group/${group.id}`} className="block">
 					<Button
-						className={`flex-1 ${buttonConfig.className}`}
+						className="w-full h-11 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300 group/btn"
 						size="lg"
-						variant={buttonConfig.variant}
-						onClick={handleJoinGroup}
-						disabled={isLoading || buttonConfig.disabled}
 					>
-						{isLoading ? (
-							<>
-								<Clock className="mr-2 h-4 w-4 animate-spin" />
-								Processando...
-							</>
-						) : (
-							<>
-								{buttonConfig.icon}
-								{buttonConfig.text}
-							</>
-						)}
+						<span className="flex items-center justify-center gap-2">
+							Ver Grupo
+							<ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+						</span>
 					</Button>
-					<Button
-						className={`flex-2 ${buttonConfig.className}`}
-						size="lg"
-						variant={buttonConfig.variant}
-						onClick={handleJoinGroup}
-						disabled={isLoading || buttonConfig.disabled}
-					>
-						{isLoading ? (
-							<>
-								<Clock className="mr-2 h-4 w-4 animate-spin" />
-								Processando...
-							</>
-						) : (
-							<>
-								{buttonConfig.icon}
-								{buttonConfig.text}
-							</>
-						)}
-					</Button>
-				</div>
+				</Link>
+
+				{/* Indicadores de status adicionais */}
+				{group.requiresApproval && !isMember && (
+					<div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-100">
+						<Clock className="w-3 h-3" />
+						<span>Grupo requer aprovação para entrar</span>
+					</div>
+				)}
 			</CardContent>
+
+			{/* Brilho decorativo no hover */}
+			<div className="absolute inset-0 -z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-cyan-500/5" />
 		</Card>
 	);
 }
