@@ -19,7 +19,8 @@ export const auth = betterAuth({
     },
     emailAndPassword: {
         enabled: true,
-        requireEmailVerification: true,
+        // Não exigir verificação de e-mail ao criar conta
+        requireEmailVerification: false,
         sendResetPassword: async ({ user, url, token }, request) => {
             try {
                 const result = await sendResetPasswordEmail(
@@ -43,7 +44,8 @@ export const auth = betterAuth({
         },
     },
     emailVerification: {
-        sendOnSignUp: true,
+        // Não enviar e-mail de verificação automaticamente
+        sendOnSignUp: false,
         expiresIn: 24 * 60 * 60,
         autoSignInAfterVerification: false,
         sendVerificationEmail: async ({ user, url, token }) => {
