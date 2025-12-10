@@ -344,11 +344,6 @@ export default function GroupPage({ params }) {
 									<h1 className="text-3xl font-bold mb-2 break-words">{group.name}</h1>
 									<p className="text-muted-foreground break-words">{group.description}</p>
 								</div>
-								<div className="flex-shrink-0">
-									<span className="px-3 py-1 bg-secondary text-secondary-foreground rounded-md text-sm font-medium whitespace-nowrap">
-										{group.rpgType?.name}
-									</span>
-								</div>
 							</div>
 							<div className="flex gap-6 text-sm text-muted-foreground border-t pt-4">
 								<div className="flex items-center gap-2">
