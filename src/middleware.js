@@ -1,4 +1,7 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+
+const isDev = process.env.NODE_ENV !== "production";
+const cookieName = isDev ? "session_token" : "__Secure-session_token";
 
 export async function middleware(request) {
 	const { pathname } = request.nextUrl;
@@ -6,22 +9,37 @@ export async function middleware(request) {
 	console.log(`Middleware executado para: ${pathname}`);
 
 	// Rotas públicas que não precisam de autenticação
-	const publicRoutes = ['/', '/login', '/register','/verify-email', '/resend-verification', '/password-reset'];
-	const isApiRoute = pathname.startsWith('/api/');
-	const isStaticFile = pathname.startsWith('/_next/') || pathname.startsWith('/favicon') || pathname.includes('.');
+	const publicRoutes = [
+		"/",
+		"/login",
+		"/register",
+		"/verify-email",
+		"/resend-verification",
+		"/password-reset",
+	];
+	const isApiRoute = pathname.startsWith("/api/");
+	const isStaticFile =
+		pathname.startsWith("/_next/") ||
+		pathname.startsWith("/favicon") ||
+		pathname.includes(".");
 
 	if (publicRoutes.includes(pathname) || isApiRoute || isStaticFile) {
 		return NextResponse.next();
 	}
 
-	const sessionToken = request.cookies.get('__Secure-session_token')?.value;
-
+	const sessionToken = request.cookies.get(cookieName)?.value;
 
 	if (!sessionToken) {
-		const response = NextResponse.redirect(new URL('/login', request.url));
+		const response = NextResponse.redirect(new URL("/login", request.url));
 
-		response.cookies.set('__Secure-session_token', '', { expires: new Date(0), path: '/' });
-		response.cookies.set('auth_session', '', { expires: new Date(0), path: '/' });
+		response.cookies.set("__Secure-session_token", "", {
+			expires: new Date(0),
+			path: "/",
+		});
+		response.cookies.set("auth_session", "", {
+			expires: new Date(0),
+			path: "/",
+		});
 
 		return response;
 	}
@@ -39,6 +57,6 @@ export const config = {
 		 * - favicon.ico (favicon file)
 		 * - arquivos com extensão
 		 */
-		'/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
+		"/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
 	],
 };
